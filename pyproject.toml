@@ -1,0 +1,19 @@
+[tool.poetry]
+name = "testtaskem"
+version = "0.1.0"
+description = ""
+authors = ["samypushisty <pomidorik228@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.12"
+fastapi = {extras = ["all"], version = "^0.116.1"}
+uvicorn = {extras = ["standard"], version = "^0.35.0"}
+sqlalchemy = {extras = ["asyncio"], version = "^2.0.41"}
+redis = "^6.2.0"
+asyncpg = "^0.30.0"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
