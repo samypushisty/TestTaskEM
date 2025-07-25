@@ -7,7 +7,7 @@ from api.api_v1.base_schemas.schemas import GenericResponse
 
 class AuthServiceI(Protocol):
     @abstractmethod
-    async def registration_user(self, user: UserAuth) -> GenericResponse[JWTRead]:
+    async def auth_user(self, user: UserAuth) -> GenericResponse[JWTRead]:
         ...
 
     @abstractmethod
