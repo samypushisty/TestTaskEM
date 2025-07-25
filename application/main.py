@@ -1,11 +1,13 @@
 import uvicorn
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
+from fastapi.responses import JSONResponse
 from starlette.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 
+from api.api_v1.base_schemas.schemas import StandartException
 from core.config import settings
 from core.models import db_helper
-
+from api import router as api_router
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -18,6 +20,10 @@ main_app = FastAPI(
 
     lifespan=lifespan,
     title="App",
+)
+
+main_app.include_router(
+    api_router
 )
 
 origins = [
@@ -34,9 +40,12 @@ main_app.add_middleware(
     allow_headers=["*"],
 )
 
-@main_app.get("/")
-def read_root():
-    return {"Hello": "World"}
+@main_app.exception_handler(StandartException)
+async def unicorn_exception_handler(request: Request, exc: StandartException):
+    return JSONResponse(
+        status_code=exc.status_code,
+        content=exc.detail
+    )
 
 if __name__ == "__main__":
     uvicorn.run(
