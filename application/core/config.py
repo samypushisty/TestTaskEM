@@ -16,10 +16,12 @@ class RedisConfig(BaseModel):
 
 class ApiV1Prefix(BaseModel):
     prefix: str = "/v1"
+    auth: str = "/auth"
 
 
 class ApiPrefix(BaseModel):
     prefix: str = "/api"
+
     v1: ApiV1Prefix = ApiV1Prefix()
 
 
@@ -47,7 +49,7 @@ class Settings(BaseSettings):
         env_prefix="APP_CONFIG__",
         extra="ignore"
     )
-    secret_key: str
+    secret_key: str = ""
     run: RunConfig = RunConfig()
     api: ApiPrefix = ApiPrefix()
     db: DatabaseConfig = DatabaseConfig()
