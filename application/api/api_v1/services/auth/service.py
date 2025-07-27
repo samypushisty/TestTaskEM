@@ -1,6 +1,6 @@
 from api.api_v1.utils.repository import SQLAlchemyRepository
-from api.api_v1.services.auth.schemas import UserAuth, JWTRead, GetUser
-from api.api_v1.base_schemas.schemas import GenericResponse
+from api.api_v1.services.auth.schemas import JWTRead, GetUser, UserPatch, UserSign, UserReg
+from api.api_v1.base_schemas.schemas import GenericResponse, StandartException
 from core.models.base import User
 from secure import create_jwt, JwtInfo
 from datetime import datetime, timezone
@@ -18,15 +18,16 @@ class AuthService(AuthServiceI):
         self.session = database_session
 
 
-    async def auth_user(self, user: UserAuth) -> GenericResponse[JWTRead]:
+    async def reg_user(self, user: UserReg) -> GenericResponse[JWTRead]:
         async with self.session() as session:
             async with session.begin():
                 result: User = await self.repository_user.find(session=session, chat_id=user.chat_id)
                 if result:
-                    check_password(stored_password=result.password,provided_password=user.password)
-                    await self.repository_user.patch(session=session, data={
-                        "last_visit": datetime.now(timezone.utc).replace(tzinfo=None)}, chat_id=user.chat_id)
+                    check_password(stored_password=result.password, provided_password=user.password)
+                    await self.repository_user.patch_field(session=session, chat_id=user.chat_id, field="active",
+                                                           value=True)
                     return GenericResponse[JWTRead](detail=JWTRead(jwt=create_jwt(user.chat_id)))
+
 
                 user_settings = {"chat_id": user.chat_id, "theme": "auto", "language": "english",
                                  "notifications": True}
@@ -35,7 +36,16 @@ class AuthService(AuthServiceI):
                 await self.repository_settings.add(session=session, data=user_settings)
                 return GenericResponse[JWTRead](detail=JWTRead(jwt=create_jwt(user.chat_id)))
 
-
+    async def sign_user(self, user: UserSign) -> GenericResponse[JWTRead]:
+        async with self.session() as session:
+            async with session.begin():
+                result: User = await self.repository_user.find(session=session, chat_id=user.chat_id, validate=True)
+                if not result.active:
+                    raise StandartException(status_code=404,detail="user not found")
+                check_password(stored_password=result.password,provided_password=user.password)
+                await self.repository_user.patch(session=session, data={
+                        "last_visit": datetime.now(timezone.utc).replace(tzinfo=None)}, chat_id=user.chat_id)
+                return GenericResponse[JWTRead](detail=JWTRead(jwt=create_jwt(user.chat_id)))
 
     async def get_user(self, token: JwtInfo) -> GenericResponse[GetUser]:
         async with self.session() as session:
@@ -43,3 +53,14 @@ class AuthService(AuthServiceI):
                 result = await self.repository_user.find(session=session, chat_id=token.id, validate=True)
                 result = GetUser.model_validate(result, from_attributes=True)
                 return GenericResponse[GetUser](detail=result)
+
+    async def patch_user(self, user: UserPatch, token: JwtInfo) -> None:
+        async with self.session() as session:
+            async with session.begin():
+                patch_data = user.model_dump(exclude_unset=True)
+                await self.repository_user.patch(session=session, data=patch_data, chat_id=token.id)
+
+    async def delete_user(self, token: JwtInfo) -> None:
+        async with self.session() as session:
+            async with session.begin():
+                await self.repository_user.patch_field(session=session, chat_id=token.id, field="active", value=False)

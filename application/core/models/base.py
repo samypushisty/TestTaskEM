@@ -1,13 +1,10 @@
 from datetime import datetime
-from decimal import Decimal
-from typing import Optional, Annotated, List
-from sqlalchemy import ForeignKey, text, String, MetaData, BigInteger, Numeric, UniqueConstraint, ARRAY, event
-from sqlalchemy.ext.mutable import MutableList
-from sqlalchemy.orm import Mapped, mapped_column, DeclarativeBase, relationship
+from typing import Annotated, Optional
+from sqlalchemy import ForeignKey, text, String, MetaData, BigInteger, Boolean
+from sqlalchemy.orm import Mapped, mapped_column, DeclarativeBase
 from core.config import settings
 import enum
 
-str_3 = Annotated[str,3]
 str_15 = Annotated[str,15]
 str_256 = Annotated[str,256]
 intfk = Annotated[int, mapped_column(BigInteger, ForeignKey("user.chat_id", ondelete="CASCADE"))]
@@ -20,7 +17,6 @@ class Base(DeclarativeBase):
         naming_convention=settings.db.naming_convention
     )
     type_annotation_map = {
-        str_3: String(3),
         str_15: String(15),
         str_256: String(256)
     }
@@ -42,6 +38,11 @@ class User(Base):
     password: Mapped[str]
     registration: Mapped[datetime] = mapped_column(server_default=text("TIMEZONE('utc', now())"))
     last_visit: Mapped[datetime] = mapped_column(server_default=text("TIMEZONE('utc', now())"))
+    email: Mapped[str]
+    name: Mapped[str_15]
+    last_name: Mapped[str_15]
+    description: Mapped[Optional[str_256]]
+    active: Mapped[bool] = mapped_column(Boolean, default=True)
 
 class UserSettings(Base):
     __tablename__ = "settings"

@@ -16,7 +16,7 @@ class RedisConfig(BaseModel):
 
 class ApiV1Prefix(BaseModel):
     prefix: str = "/v1"
-    auth: str = "/auth"
+    user: str = "/user"
 
 
 class ApiPrefix(BaseModel):
@@ -27,7 +27,7 @@ class ApiPrefix(BaseModel):
 
 class DatabaseConfig(BaseModel):
     url: PostgresDsn = ""
-    echo: bool = False
+    echo: bool = True
     echo_pool: bool = True
     pool_size: int = 50
     max_overflow: int = 10
