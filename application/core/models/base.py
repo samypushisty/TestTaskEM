@@ -7,8 +7,8 @@ import enum
 
 str_15 = Annotated[str,15]
 str_256 = Annotated[str,256]
-intfk = Annotated[int, mapped_column(BigInteger, ForeignKey("user.chat_id", ondelete="CASCADE"))]
-intfkpk = Annotated[int, mapped_column(BigInteger, ForeignKey("user.chat_id", ondelete="CASCADE"), primary_key=True)]
+intfk = Annotated[int, mapped_column(BigInteger, ForeignKey("user.user_id", ondelete="CASCADE"))]
+intfkpk = Annotated[int, mapped_column(BigInteger, ForeignKey("user.user_id", ondelete="CASCADE"), primary_key=True)]
 intpk = Annotated[int, mapped_column( primary_key=True, autoincrement=True)]
 
 
@@ -34,11 +34,11 @@ class Theme(enum.Enum):
 
 class User(Base):
     __tablename__ = "user"
-    chat_id: Mapped[int] = mapped_column( BigInteger, primary_key=True, autoincrement=False)
+    user_id: Mapped[intpk]
     password: Mapped[str]
     registration: Mapped[datetime] = mapped_column(server_default=text("TIMEZONE('utc', now())"))
     last_visit: Mapped[datetime] = mapped_column(server_default=text("TIMEZONE('utc', now())"))
-    email: Mapped[str]
+    email: Mapped[str] = mapped_column(unique=True)
     name: Mapped[str_15]
     last_name: Mapped[str_15]
     description: Mapped[Optional[str_256]]
@@ -47,7 +47,7 @@ class User(Base):
 class UserSettings(Base):
     __tablename__ = "settings"
 
-    chat_id: Mapped[intfkpk]
+    user_id: Mapped[intfkpk]
     theme: Mapped[Theme]
     language: Mapped[Language]
     notifications: Mapped[bool]

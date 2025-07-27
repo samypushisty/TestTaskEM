@@ -56,8 +56,8 @@ class SQLAlchemyRepository(AbstractRepository):
             stmt = self.model(**data)
             session.add(stmt)
             await session.flush()
+            return stmt
         except:
-
             raise StandartException(status_code=400, detail="Invalid data")
 
 

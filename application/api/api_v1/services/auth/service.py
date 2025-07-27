@@ -21,36 +21,36 @@ class AuthService(AuthServiceI):
     async def reg_user(self, user: UserReg) -> GenericResponse[JWTRead]:
         async with self.session() as session:
             async with session.begin():
-                result: User = await self.repository_user.find(session=session, chat_id=user.chat_id)
+                result: User = await self.repository_user.find(session=session, email=user.email)
                 if result:
+                    print("check")
                     check_password(stored_password=result.password, provided_password=user.password)
-                    await self.repository_user.patch_field(session=session, chat_id=user.chat_id, field="active",
+                    await self.repository_user.patch_field(session=session, user_id=result.user_id, field="active",
                                                            value=True)
-                    return GenericResponse[JWTRead](detail=JWTRead(jwt=create_jwt(user.chat_id)))
+                    return GenericResponse[JWTRead](detail=JWTRead(jwt=create_jwt(result.user_id)))
 
-
-                user_settings = {"chat_id": user.chat_id, "theme": "auto", "language": "english",
-                                 "notifications": True}
                 user.password = hash_password(user.password)
-                await self.repository_user.add(session=session, data=user.model_dump())
+                user_table = await self.repository_user.add(session=session, data=user.model_dump())
+                user_settings = {"user_id": user_table.user_id, "theme": "auto", "language": "english",
+                                 "notifications": True}
                 await self.repository_settings.add(session=session, data=user_settings)
-                return GenericResponse[JWTRead](detail=JWTRead(jwt=create_jwt(user.chat_id)))
+                return GenericResponse[JWTRead](detail=JWTRead(jwt=create_jwt(user_table.user_id)))
 
     async def sign_user(self, user: UserSign) -> GenericResponse[JWTRead]:
         async with self.session() as session:
             async with session.begin():
-                result: User = await self.repository_user.find(session=session, chat_id=user.chat_id, validate=True)
+                result: User = await self.repository_user.find(session=session, email=user.email, validate=True)
                 if not result.active:
                     raise StandartException(status_code=404,detail="user not found")
                 check_password(stored_password=result.password,provided_password=user.password)
                 await self.repository_user.patch(session=session, data={
-                        "last_visit": datetime.now(timezone.utc).replace(tzinfo=None)}, chat_id=user.chat_id)
-                return GenericResponse[JWTRead](detail=JWTRead(jwt=create_jwt(user.chat_id)))
+                        "last_visit": datetime.now(timezone.utc).replace(tzinfo=None)}, user_id=result.user_id)
+                return GenericResponse[JWTRead](detail=JWTRead(jwt=create_jwt(result.user_id)))
 
     async def get_user(self, token: JwtInfo) -> GenericResponse[GetUser]:
         async with self.session() as session:
             async with session.begin():
-                result = await self.repository_user.find(session=session, chat_id=token.id, validate=True)
+                result = await self.repository_user.find(session=session, user_id=token.id, validate=True)
                 result = GetUser.model_validate(result, from_attributes=True)
                 return GenericResponse[GetUser](detail=result)
 
@@ -58,9 +58,9 @@ class AuthService(AuthServiceI):
         async with self.session() as session:
             async with session.begin():
                 patch_data = user.model_dump(exclude_unset=True)
-                await self.repository_user.patch(session=session, data=patch_data, chat_id=token.id)
+                await self.repository_user.patch(session=session, data=patch_data, user_id=token.id)
 
     async def delete_user(self, token: JwtInfo) -> None:
         async with self.session() as session:
             async with session.begin():
-                await self.repository_user.patch_field(session=session, chat_id=token.id, field="active", value=False)
+                await self.repository_user.patch_field(session=session, user_id=token.id, field="active", value=False)
