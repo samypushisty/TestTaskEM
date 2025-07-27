@@ -1,7 +1,7 @@
 from datetime import datetime
-from typing import Annotated, Optional
+from typing import Annotated, Optional, List
 from sqlalchemy import ForeignKey, text, String, MetaData, BigInteger, Boolean
-from sqlalchemy.orm import Mapped, mapped_column, DeclarativeBase
+from sqlalchemy.orm import Mapped, mapped_column, DeclarativeBase, relationship
 from core.config import settings
 import enum
 
@@ -32,6 +32,26 @@ class Theme(enum.Enum):
     auto = "auto"
 
 
+class UserPermissionAssociation(Base):
+    __tablename__ = 'user_permission_association'
+
+    user_id: Mapped[int] = mapped_column(ForeignKey('user.user_id'), primary_key=True)
+    permission_id: Mapped[int] = mapped_column(ForeignKey('permission.permission_id'), primary_key=True)
+
+
+
+class Permission(Base):
+    __tablename__ = "permission"
+
+    permission_id: Mapped[int] = mapped_column(primary_key=True)
+    name: Mapped[str] = mapped_column(String(50), unique=True, nullable=False)
+    description: Mapped[Optional[str]]
+
+    users: Mapped[List["User"]] = relationship(
+        secondary="user_permission_association",
+        back_populates="permissions"
+    )
+
 class User(Base):
     __tablename__ = "user"
     user_id: Mapped[intpk]
@@ -43,6 +63,38 @@ class User(Base):
     last_name: Mapped[str_15]
     description: Mapped[Optional[str_256]]
     active: Mapped[bool] = mapped_column(Boolean, default=True)
+
+    permissions: Mapped[List["Permission"]] = relationship(
+        secondary="user_permission_association",
+        back_populates="users",
+        lazy="selectin"  # Для автоматической загрузки при запросе
+    )
+
+    def has_permission(self, permission_name: str) -> bool:
+        return any(p.name == permission_name for p in self.permissions)
+
+    def add_permission(self, permission: Permission):
+        if permission not in self.permissions:
+            self.permissions.append(permission)
+
+    def remove_permission(self, permission_name: str):
+        self.permissions = [p for p in self.permissions if p.name != permission_name]
+
+    # admin_perm = Permission(name="admin", description="Full access")
+    # moder_perm = Permission(name="moderator", description="Moderation rights")
+    #
+    # # Назначение разрешений пользователю
+    # user = User(name="John", last_name="Doe", email="john@example.com")
+    # user.permissions.append(admin_perm)
+    # user.permissions.append(moder_perm)
+    #
+    # # Проверка разрешений
+    # print(user.has_permission("admin"))  # True
+    # print(user.has_permission("editor"))  # False
+    #
+    # # Удаление разрешения
+    # user.remove_permission("moderator")
+
 
 class UserSettings(Base):
     __tablename__ = "settings"
