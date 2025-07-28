@@ -6,7 +6,7 @@ from api.api_v1.utils.repository import SQLAlchemyRepository
 from core.config import settings
 from sqlalchemy.ext.asyncio import AsyncSession
 from collections.abc import AsyncGenerator
-from core.models.base import User, UserSettings
+from core.models.base import User, UserSettings, Permission
 from core.models.db_helper import DatabaseHelper
 from core.redis_db.redis_helper import redis_session_getter
 
@@ -32,9 +32,15 @@ class DependencyContainer(containers.DeclarativeContainer):
         model=UserSettings,
     )
 
+    user_permissions_repository: Singleton["SQLAlchemyRepository"] = Singleton(
+        SQLAlchemyRepository,
+        model=Permission,
+    )
+
     auth_service: Factory["AuthServiceI"] = Factory(AuthService,
                                                     repository_user=user_repository,
                                                     repository_settings= user_settings_repository,
+                                                    repository_permissions=user_permissions_repository,
                                                     database_session=database_session)
 
 container = DependencyContainer()

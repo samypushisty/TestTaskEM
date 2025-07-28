@@ -1,10 +1,12 @@
+from sqlalchemy import select, Result, insert
 from api.api_v1.utils.repository import SQLAlchemyRepository
 from api.api_v1.services.auth.schemas import JWTRead, GetUser, UserPatch, UserSign, UserReg
 from api.api_v1.base_schemas.schemas import GenericResponse, StandartException
-from core.models.base import User
+from core.config import settings
+from core.models.base import User, Permission, UserPermissionAssociation
 from secure import create_jwt, JwtInfo
 from datetime import datetime, timezone
-from typing import Callable
+from typing import Callable, Sequence
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from api.api_v1.services.auth.interface import AuthServiceI
@@ -12,9 +14,10 @@ from secure.hash_password import hash_password, check_password
 
 
 class AuthService(AuthServiceI):
-    def __init__(self, repository_user: SQLAlchemyRepository, repository_settings: SQLAlchemyRepository, database_session:Callable[..., AsyncSession]) -> None:
+    def __init__(self, repository_user: SQLAlchemyRepository, repository_settings: SQLAlchemyRepository, repository_permissions: SQLAlchemyRepository, database_session:Callable[..., AsyncSession]) -> None:
         self.repository_user = repository_user
         self.repository_settings = repository_settings
+        self.repository_permissions = repository_permissions
         self.session = database_session
 
 
@@ -31,6 +34,25 @@ class AuthService(AuthServiceI):
 
                 user.password = hash_password(user.password)
                 user_table = await self.repository_user.add(session=session, data=user.model_dump())
+
+
+                #add permissions to user
+                print("1")
+                permission_query = select(Permission).where(Permission.name.in_(settings.default_permissions))
+                print("1")
+                permissions: Result = await session.execute(permission_query)
+                print("1")
+                default_permissions: Sequence[Permission] = permissions.scalars().all()
+                print("1")
+                print(default_permissions)
+                if default_permissions:
+                    stmt = insert(UserPermissionAssociation).values(
+                        [{"user_id": user_table.user_id, "permission_id": perm.permission_id} for perm in
+                         default_permissions]
+                    )
+                    await session.execute(stmt)
+
+                #add settings to user
                 user_settings = {"user_id": user_table.user_id, "theme": "auto", "language": "english",
                                  "notifications": True}
                 await self.repository_settings.add(session=session, data=user_settings)
