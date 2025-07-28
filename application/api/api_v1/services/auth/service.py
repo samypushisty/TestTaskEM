@@ -37,14 +37,9 @@ class AuthService(AuthServiceI):
 
 
                 #add permissions to user
-                print("1")
                 permission_query = select(Permission).where(Permission.name.in_(settings.default_permissions))
-                print("1")
                 permissions: Result = await session.execute(permission_query)
-                print("1")
                 default_permissions: Sequence[Permission] = permissions.scalars().all()
-                print("1")
-                print(default_permissions)
                 if default_permissions:
                     stmt = insert(UserPermissionAssociation).values(
                         [{"user_id": user_table.user_id, "permission_id": perm.permission_id} for perm in
@@ -68,6 +63,9 @@ class AuthService(AuthServiceI):
                 await self.repository_user.patch(session=session, data={
                         "last_visit": datetime.now(timezone.utc).replace(tzinfo=None)}, user_id=result.user_id)
                 return GenericResponse[JWTRead](detail=JWTRead(jwt=create_jwt(result.user_id)))
+
+    async def logout_user(self, token: JwtInfo) -> None:
+        token.logout()
 
     async def get_user(self, user_id: int) -> GenericResponse[GetUser]:
         async with self.session() as session:

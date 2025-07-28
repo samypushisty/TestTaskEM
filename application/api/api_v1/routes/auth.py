@@ -25,6 +25,13 @@ async def sign_user(
         ):
     return await auth_service.sign_user(user=user)
 
+@router.post("/logout")
+async def logout_user(
+        token: JwtInfo = Depends(validation),
+        auth_service = Depends(get_auth_service),
+        ):
+    return await auth_service.logout_user(token=token)
+
 @router.get("",response_model=GenericResponse[GetUser])
 async def get_user(
         user_id: int,
