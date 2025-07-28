@@ -7,8 +7,8 @@ from pydantic import BaseModel, Field, EmailStr
 class UserReg(BaseModel):
     email: EmailStr
     password: str
-    name: str = Field(None, max_length=15)
-    last_name: str = Field(None, max_length=15)
+    name: str = Field(max_length=15)
+    last_name: str = Field(max_length=15)
     description: Optional[str] = Field(None, max_length=256)
 
 class UserSign(BaseModel):
@@ -20,13 +20,13 @@ class GetUser(BaseModel):
     registration: datetime
     last_visit: datetime
     email: EmailStr
-    name: str = Field(None, max_length=15)
-    last_name: str = Field(None, max_length=15)
+    name: str = Field(max_length=15)
+    last_name: str = Field(max_length=15)
     description: Optional[str] = Field(None, max_length=256)
 
 class UserPatch(BaseModel):
-    name: Optional[str] = Field(None, max_length=15)
-    last_name: Optional[str] = Field(None, max_length=15)
+    name: Optional[str] = Field(max_length=15)
+    last_name: Optional[str] = Field(max_length=15)
     description: Optional[str] = Field(None, max_length=256)
 
 class JWTRead(BaseModel):

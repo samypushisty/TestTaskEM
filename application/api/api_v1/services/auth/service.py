@@ -83,4 +83,8 @@ class AuthService(AuthServiceI):
     async def delete_user(self, token: JwtInfo) -> None:
         async with self.session() as session:
             async with session.begin():
+                token.logout()
                 await self.repository_user.patch_field(session=session, user_id=token.id, field="active", value=False)
+
+    async def update_token(self, token: JwtInfo) -> GenericResponse[JWTRead]:
+        return GenericResponse[JWTRead](detail=JWTRead(jwt=create_jwt(token.id)))

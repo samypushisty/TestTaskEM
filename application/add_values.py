@@ -18,9 +18,10 @@ async def init_default_data():
     WHERE NOT EXISTS (SELECT 1 FROM permission WHERE name = tmp.name)
     """
     
-    async with db_helper.session_factory().begin() as conn:
+    async with db_helper.session_factory() as conn:
         # Выполняем SQL-скрипт
         await conn.execute(text(insert_permissions))
         print("✅ Default permissions added")
+        await conn.commit()
 
 asyncio.run(init_default_data())

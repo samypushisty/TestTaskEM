@@ -112,7 +112,6 @@ class SQLAlchemyRepository(AbstractRepository):
         try:
             result = await session.execute(stmt)
         except:
-
             raise StandartException(status_code=400, detail="Invalid data")
         if result.rowcount == 0:
             raise StandartException(status_code=404, detail="not found")
@@ -125,7 +124,9 @@ class SQLAlchemyRepository(AbstractRepository):
             .filter_by(**filters)
         )
         try:
-            await session.execute(stmt)
+            result = await session.execute(stmt)
+            if validate and result.rowcount == 0:
+                raise StandartException(status_code=404, detail="Not Found")
         except:
             raise StandartException(status_code=400, detail="Invalid data")
         await session.flush()

@@ -35,8 +35,8 @@ class Theme(enum.Enum):
 class UserPermissionAssociation(Base):
     __tablename__ = 'user_permission_association'
 
-    user_id: Mapped[int] = mapped_column(ForeignKey('user.user_id'), primary_key=True)
-    permission_id: Mapped[int] = mapped_column(ForeignKey('permission.permission_id'), primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey('user.user_id', ondelete="CASCADE"), primary_key=True)
+    permission_id: Mapped[int] = mapped_column(ForeignKey('permission.permission_id', ondelete="CASCADE"), primary_key=True)
 
 
 
@@ -51,6 +51,14 @@ class Permission(Base):
         secondary="user_permission_association",
         back_populates="permissions"
     )
+
+class Post(Base):
+    __tablename__ = "post"
+
+    table_id: Mapped[intpk]
+    user_id: Mapped[intfk]
+    title: Mapped[str_15]
+    description: Mapped[Optional[str_256]]
 
 class User(Base):
     __tablename__ = "user"
@@ -68,6 +76,11 @@ class User(Base):
         secondary="user_permission_association",
         back_populates="users",
         lazy="selectin"  # Для автоматической загрузки при запросе
+    )
+
+    posts: Mapped[List["Post"]] = relationship(
+        cascade="all, delete-orphan",
+        lazy="selectin"
     )
 
     def has_permission(self, permission_name: str) -> bool:

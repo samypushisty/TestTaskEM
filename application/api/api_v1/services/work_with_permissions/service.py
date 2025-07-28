@@ -32,8 +32,6 @@ class ManageService(ManageServiceI):
         async with self.session() as session:
             async with session.begin():
                 work_user: User = await self.repository_user.find(session=session, user_id=token.id, validate=True)
-                if not work_user.active:
-                    raise StandartException(status_code=403, detail="Not Found")
                 if not work_user.has_permission("admin"):
                     raise StandartException(status_code=403, detail="Forbidden")
 
@@ -47,8 +45,6 @@ class ManageService(ManageServiceI):
         async with self.session() as session:
             async with session.begin():
                 work_user: User = await self.repository_user.find(session=session, user_id=token.id, validate=True)
-                if not work_user.active:
-                    raise StandartException(status_code=403, detail="Not Found")
                 if not work_user.has_permission("moderator"):
                     raise StandartException(status_code=403,detail="Forbidden")
                 user: User = await self.repository_user.find(session=session, user_id=user_id, validate=True)
@@ -75,8 +71,6 @@ class ManageService(ManageServiceI):
         async with self.session() as session:
             async with session.begin():
                 work_user: User = await self.repository_user.find(session=session, user_id=token.id, validate=True)
-                if not work_user.active:
-                    raise StandartException(status_code=403, detail="Not Found")
                 if not work_user.has_permission("moderator"):
                     raise StandartException(status_code=403, detail="Forbidden")
                 permission: Permission = await self.repository_permissions.find(session=session, name="admin",
@@ -90,8 +84,6 @@ class ManageService(ManageServiceI):
         async with self.session() as session:
             async with session.begin():
                 work_user: User = await self.repository_user.find(session=session, user_id=token.id, validate=True)
-                if not work_user.active:
-                    raise StandartException(status_code=403, detail="Not Found")
                 if not work_user.has_permission("moderator"):
                     raise StandartException(status_code=403, detail="Forbidden")
                 permission: Permission = await self.repository_permissions.find(session=session, name="admin",

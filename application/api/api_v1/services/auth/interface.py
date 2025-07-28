@@ -29,3 +29,7 @@ class AuthServiceI(Protocol):
     @abstractmethod
     async def delete_user(self, token: JwtInfo) -> None:
         ...
+
+    @abstractmethod
+    async def update_token(self, token: JwtInfo) -> GenericResponse[JWTRead]:
+        ...

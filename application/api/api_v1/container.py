@@ -1,5 +1,7 @@
 from dependency_injector import containers
 from dependency_injector.providers import Singleton, Factory, Resource
+
+from api.api_v1.services.CRUD_posts import PostService, PostServiceI
 from api.api_v1.services.auth import AuthService, AuthServiceI
 from api.api_v1.services.work_with_permissions import ManageService, ManageServiceI
 
@@ -7,7 +9,7 @@ from api.api_v1.utils.repository import SQLAlchemyRepository
 from core.config import settings
 from sqlalchemy.ext.asyncio import AsyncSession
 from collections.abc import AsyncGenerator
-from core.models.base import User, UserSettings, Permission
+from core.models.base import User, UserSettings, Permission, Post
 from core.models.db_helper import DatabaseHelper
 
 class DependencyContainer(containers.DeclarativeContainer):
@@ -37,6 +39,11 @@ class DependencyContainer(containers.DeclarativeContainer):
         model=Permission,
     )
 
+    post_repository: Singleton["SQLAlchemyRepository"] = Singleton(
+        SQLAlchemyRepository,
+        model=Post,
+    )
+
     auth_service: Factory["AuthServiceI"] = Factory(AuthService,
                                                     repository_user=user_repository,
                                                     repository_settings= user_settings_repository,
@@ -47,5 +54,10 @@ class DependencyContainer(containers.DeclarativeContainer):
                                                     repository_user=user_repository,
                                                     repository_permissions=user_permissions_repository,
                                                     database_session=database_session)
+
+    post_service: Factory["PostServiceI"] = Factory(PostService,
+                                                        repository_post=post_repository,
+                                                        repository_user=user_repository,
+                                                        database_session=database_session)
 
 container = DependencyContainer()
