@@ -1,6 +1,7 @@
 from dependency_injector import containers
 from dependency_injector.providers import Singleton, Factory, Resource
 from api.api_v1.services.auth import AuthService, AuthServiceI
+from api.api_v1.services.work_with_permissions import ManageService, ManageServiceI
 
 from api.api_v1.utils.repository import SQLAlchemyRepository
 from core.config import settings
@@ -8,7 +9,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from collections.abc import AsyncGenerator
 from core.models.base import User, UserSettings, Permission
 from core.models.db_helper import DatabaseHelper
-from core.redis_db.redis_helper import redis_session_getter
 
 class DependencyContainer(containers.DeclarativeContainer):
 
@@ -40,6 +40,11 @@ class DependencyContainer(containers.DeclarativeContainer):
     auth_service: Factory["AuthServiceI"] = Factory(AuthService,
                                                     repository_user=user_repository,
                                                     repository_settings= user_settings_repository,
+                                                    repository_permissions=user_permissions_repository,
+                                                    database_session=database_session)
+
+    manage_service: Factory["ManageServiceI"] = Factory(ManageService,
+                                                    repository_user=user_repository,
                                                     repository_permissions=user_permissions_repository,
                                                     database_session=database_session)
 

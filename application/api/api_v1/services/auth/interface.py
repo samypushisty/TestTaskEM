@@ -15,7 +15,7 @@ class AuthServiceI(Protocol):
         ...
 
     @abstractmethod
-    async def get_user(self, token: JwtInfo) -> GenericResponse[GetUser]:
+    async def get_user(self, user_id: int) -> GenericResponse[GetUser]:
         ...
 
     @abstractmethod

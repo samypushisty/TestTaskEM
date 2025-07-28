@@ -17,6 +17,7 @@ class RedisConfig(BaseModel):
 class ApiV1Prefix(BaseModel):
     prefix: str = "/v1"
     user: str = "/user"
+    manage: str = "/manage"
 
 
 class ApiPrefix(BaseModel):

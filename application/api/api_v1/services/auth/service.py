@@ -69,10 +69,10 @@ class AuthService(AuthServiceI):
                         "last_visit": datetime.now(timezone.utc).replace(tzinfo=None)}, user_id=result.user_id)
                 return GenericResponse[JWTRead](detail=JWTRead(jwt=create_jwt(result.user_id)))
 
-    async def get_user(self, token: JwtInfo) -> GenericResponse[GetUser]:
+    async def get_user(self, user_id: int) -> GenericResponse[GetUser]:
         async with self.session() as session:
             async with session.begin():
-                result = await self.repository_user.find(session=session, user_id=token.id, validate=True)
+                result = await self.repository_user.find(session=session, user_id=user_id, validate=True)
                 result = GetUser.model_validate(result, from_attributes=True)
                 return GenericResponse[GetUser](detail=result)
 

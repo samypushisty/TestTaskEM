@@ -27,10 +27,10 @@ async def sign_user(
 
 @router.get("",response_model=GenericResponse[GetUser])
 async def get_user(
-        token: JwtInfo = Depends(validation),
+        user_id: int,
         auth_service = Depends(get_auth_service),
         ):
-    return await auth_service.get_user(token=token)
+    return await auth_service.get_user(user_id=user_id)
 
 @router.patch("")
 async def patch_user(
