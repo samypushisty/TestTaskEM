@@ -1,7 +1,9 @@
 from datetime import datetime
-from typing import Optional
+from typing import Optional, List
 
 from pydantic import BaseModel, Field, EmailStr
+
+from api.api_v1.services.CRUD_posts.schemas import GetPost
 
 
 class UserReg(BaseModel):
@@ -23,6 +25,7 @@ class GetUser(BaseModel):
     name: str = Field(max_length=15)
     last_name: str = Field(max_length=15)
     description: Optional[str] = Field(None, max_length=256)
+    posts: List[GetPost]
 
 class UserPatch(BaseModel):
     name: Optional[str] = Field(max_length=15)

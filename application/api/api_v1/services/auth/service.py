@@ -1,4 +1,6 @@
 from sqlalchemy import select, Result, insert
+
+from api.api_v1.services.CRUD_posts.schemas import GetPost
 from api.api_v1.utils.repository import SQLAlchemyRepository
 from api.api_v1.services.auth.schemas import JWTRead, GetUser, UserPatch, UserSign, UserReg
 from api.api_v1.base_schemas.schemas import GenericResponse, StandartException
@@ -71,7 +73,16 @@ class AuthService(AuthServiceI):
         async with self.session() as session:
             async with session.begin():
                 result = await self.repository_user.find(session=session, user_id=user_id, validate=True)
-                result = GetUser.model_validate(result, from_attributes=True)
+                result = GetUser(
+                    user_id=result.user_id,
+                    registration=result.registration,
+                    last_visit=result.last_visit,
+                    email=result.email,
+                    name=result.name,
+                    last_name=result.last_name,
+                    description=result.description,
+                    posts=[GetPost.model_validate(post, from_attributes=True) for post in result.posts],
+                )
                 return GenericResponse[GetUser](detail=result)
 
     async def patch_user(self, user: UserPatch, token: JwtInfo) -> None:

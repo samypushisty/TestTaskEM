@@ -1,3 +1,5 @@
+from fastapi_cloud_cli.commands.env import delete
+
 from api.api_v1.services.CRUD_posts.interface import PostServiceI
 from api.api_v1.services.CRUD_posts.schemas import UserPost, GetPost, GetPosts
 from api.api_v1.utils.repository import SQLAlchemyRepository
@@ -17,6 +19,9 @@ class PostService(PostServiceI):
     async def add_post(self, token: JwtInfo, user_post: UserPost) -> None:
         async with self.session() as session:
             async with session.begin():
+                work_user: User = await self.repository_user.find(session=session, user_id=token.id, validate=True)
+                if not work_user.has_permission("create"):
+                    raise StandartException(status_code=403, detail="Forbidden")
                 data = user_post.model_dump()
                 data["user_id"] = token.id
                 await self.repository_post.add(session=session, data=data)
@@ -38,6 +43,7 @@ class PostService(PostServiceI):
     async def get_user_posts(self, user_id: int) -> GenericResponse[GetPosts]:
         async with self.session() as session:
             async with session.begin():
+
                 result = await self.repository_post.find_all(session=session, user_id=user_id, order_column="table_id")
                 result = GetPosts(posts=[GetPost.model_validate(post, from_attributes=True) for post in result])
                 return GenericResponse[GetPosts](detail=result)
@@ -45,24 +51,28 @@ class PostService(PostServiceI):
     async def delete_post(self, token: JwtInfo, post_id: int, user_id: Optional[int]) -> None:
         async with self.session() as session:
             async with session.begin():
+                work_user: User = await self.repository_user.find(session=session, user_id=token.id, validate=True)
                 if user_id:
-                    work_user: User = await self.repository_user.find(session=session, user_id=token.id, validate=True)
-                    if not work_user.has_permission("moderator"):
+                    if not work_user.has_permission("moderator") or not work_user.has_permission("delete"):
                         raise StandartException(status_code=403, detail="Forbidden")
                     await self.repository_post.delete(session=session,user_id=user_id,table_id=post_id)
                 else:
+                    if not work_user.has_permission("delete"):
+                        raise StandartException(status_code=403, detail="Forbidden")
                     await self.repository_post.delete(session=session, user_id=token.id, table_id=post_id)
 
 
     async def patch_post(self, token: JwtInfo, post_id:int, user_post: UserPost, user_id: Optional[int])  -> None:
         async with self.session() as session:
             async with session.begin():
+                work_user: User = await self.repository_user.find(session=session, user_id=token.id, validate=True)
                 if user_id:
-                    work_user: User = await self.repository_user.find(session=session, user_id=token.id, validate=True)
-                    if not work_user.has_permission("moderator"):
+                    if not work_user.has_permission("moderator") or not work_user.has_permission("edit"):
                         raise StandartException(status_code=403, detail="Forbidden")
                     patch_data = user_post.model_dump(exclude_unset=True)
                     await self.repository_post.patch(session=session, data=patch_data, user_id=user_id, table_id=post_id)
                 else:
+                    if not work_user.has_permission("edit"):
+                        raise StandartException(status_code=403, detail="Forbidden")
                     patch_data = user_post.model_dump(exclude_unset=True)
                     await self.repository_post.patch(session=session, data=patch_data, user_id=token.id, table_id=post_id)
