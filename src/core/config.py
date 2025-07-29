@@ -19,6 +19,7 @@ class ApiV1Prefix(BaseModel):
     user: str = "/user"
     manage: str = "/manage"
     post: str = "/post"
+    settings: str = "/settings"
 
 
 class ApiPrefix(BaseModel):
@@ -29,8 +30,8 @@ class ApiPrefix(BaseModel):
 
 class DatabaseConfig(BaseModel):
     url: PostgresDsn = ""
-    echo: bool = True
-    echo_pool: bool = True
+    echo: bool = False
+    echo_pool: bool = False
     pool_size: int = 50
     max_overflow: int = 10
 

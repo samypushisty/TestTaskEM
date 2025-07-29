@@ -1,3 +1,5 @@
+import uuid
+
 import jwt
 import time
 
@@ -15,14 +17,16 @@ def validation(token: str):
 
 
 def create_jwt(user_id: int):
+    jti = str(uuid.uuid4())
     payload = {
         "id": user_id,
         "expires": time.time() + 3600,
+        'jti': jti
     }
     token = jwt.encode(payload, settings.secret_key, algorithm='HS256')
     if redis_client.exists(user_id):
         redis_client.delete(user_id)
-    redis_client.setex(user_id, 3600, "valid")
+    redis_client.setex(user_id, 3600, jti)
     return token
 
 class JwtInfo:
@@ -44,7 +48,7 @@ class JwtInfo:
             self.info_except = "data expire is none"
         elif time.time() > self._expires:
             self.info_except = "expired"
-        elif not redis_client.exists(self.id):
+        elif not redis_client.exists(self.id) or not redis_client.get(self.id) == self._jti:
             self.info_except = "Token revoked"
         else:
             self.valid = True

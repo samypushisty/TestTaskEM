@@ -55,7 +55,7 @@ async def delete_user(
     return await auth_service.delete_user(token=token)
 
 @router.post("/refresh_token",response_model=GenericResponse[JWTRead])
-async def reg_user(
+async def refresh_token(
         token: JwtInfo = Depends(validation),
         auth_service = Depends(get_auth_service),
         ):

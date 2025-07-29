@@ -7,6 +7,16 @@ from sqlalchemy import select, update, delete
 
 from api.v1.base_schemas.schemas import StandartException
 
+import sys
+import logging
+from logging import StreamHandler, Formatter
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
+handler = StreamHandler(stream=sys.stdout)
+handler.setFormatter(Formatter(fmt='[%(asctime)s: %(levelname)s] %(message)s'))
+logger.addHandler(handler)
+
 
 class AbstractRepository(ABC):
     @abstractmethod
@@ -56,8 +66,10 @@ class SQLAlchemyRepository(AbstractRepository):
             stmt = self.model(**data)
             session.add(stmt)
             await session.flush()
+            logger.debug("Success")
             return stmt
         except:
+            logger.error("Invalid data")
             raise StandartException(status_code=400, detail="Invalid data")
 
 
@@ -69,7 +81,9 @@ class SQLAlchemyRepository(AbstractRepository):
         result = await session.execute(query)
         result = result.scalars().first()
         if not result and validate:
+            logger.error("Not found")
             raise StandartException(status_code=404, detail="not found")
+        logger.debug("Success")
         return result
 
 
@@ -82,8 +96,9 @@ class SQLAlchemyRepository(AbstractRepository):
         result = await session.execute(query)
         result = result.scalars().all()
         if not result and validate:
+            logger.error("Not found")
             raise StandartException(status_code=404, detail="not found")
-
+        logger.debug("Success")
         return result
 
 
@@ -99,7 +114,9 @@ class SQLAlchemyRepository(AbstractRepository):
         result = await session.execute(query)
         result = result.scalars().all()
         if not result and validate:
+            logger.error("Not found")
             raise StandartException(status_code=404, detail="not found")
+        logger.debug("Success")
         return result
 
 
@@ -112,9 +129,12 @@ class SQLAlchemyRepository(AbstractRepository):
         try:
             result = await session.execute(stmt)
         except:
+            logger.error("Invalid data")
             raise StandartException(status_code=400, detail="Invalid data")
         if result.rowcount == 0:
+            logger.error("Not found")
             raise StandartException(status_code=404, detail="not found")
+        logger.debug("Success")
         await session.flush()
 
     async def patch_field(self, session: AsyncSession, field: str, value: Any, **filters):
@@ -125,10 +145,13 @@ class SQLAlchemyRepository(AbstractRepository):
         )
         try:
             result = await session.execute(stmt)
-            if validate and result.rowcount == 0:
+            if result.rowcount == 0:
+                logger.error("Not found")
                 raise StandartException(status_code=404, detail="Not Found")
         except:
+            logger.error("Invalid data")
             raise StandartException(status_code=400, detail="Invalid data")
+        logger.debug("Success")
         await session.flush()
 
     async def delete(self, session: AsyncSession,validate = True,**filters):
@@ -138,5 +161,7 @@ class SQLAlchemyRepository(AbstractRepository):
         )
         result = await session.execute(query)
         if result.rowcount == 0 and validate:
+            logger.error("Not found")
             raise StandartException(status_code=404, detail="not found")
+        logger.debug("Success")
         await session.flush()

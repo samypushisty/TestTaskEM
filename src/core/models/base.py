@@ -93,21 +93,6 @@ class User(Base):
     def remove_permission(self, permission_name: str):
         self.permissions = [p for p in self.permissions if p.name != permission_name]
 
-    # admin_perm = Permission(name="admin", description="Full access")
-    # moder_perm = Permission(name="moderator", description="Moderation rights")
-    #
-    # # Назначение разрешений пользователю
-    # user = User(name="John", last_name="Doe", email="john@example.com")
-    # user.permissions.append(admin_perm)
-    # user.permissions.append(moder_perm)
-    #
-    # # Проверка разрешений
-    # print(user.has_permission("admin"))  # True
-    # print(user.has_permission("editor"))  # False
-    #
-    # # Удаление разрешения
-    # user.remove_permission("moderator")
-
 
 class UserSettings(Base):
     __tablename__ = "settings"

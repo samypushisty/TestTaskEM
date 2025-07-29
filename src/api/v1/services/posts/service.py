@@ -1,5 +1,3 @@
-from fastapi_cloud_cli.commands.env import delete
-
 from api.v1.services.posts.interface import PostServiceI
 from api.v1.services.posts.schemas import UserPost, GetPost, GetPosts
 from api.v1.utils.repository import SQLAlchemyRepository

@@ -3,7 +3,7 @@ from typing import Optional
 from fastapi import APIRouter, Depends
 from api.v1.container import container
 from api.v1.services.posts import PostServiceI
-from api.v1.services.posts.schemas import UserPost, GetPost, GetPosts
+from api.v1.services.posts.schemas import UserPost, GetPosts
 from api.v1.base_schemas.schemas import GenericResponse
 from secure import JwtInfo
 from secure.jwt_functions import validation

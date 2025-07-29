@@ -2,13 +2,13 @@ FROM python:3.12-slim
 
 WORKDIR /app
 
-ENV PYTHONPATH="${PYTHONPATH}:/app/application"
+ENV PYTHONPATH="${PYTHONPATH}:/app/src"
 
 COPY pyproject.toml poetry.lock ./
-COPY application/ ./application/
+COPY src/ ./src/
 
 RUN pip install --no-cache-dir poetry && \
     poetry config virtualenvs.create false && \
     poetry install --no-root --no-interaction --no-ansi
 
-CMD ["sh", "-c", "alembic -c application/alembic.ini upgrade head && python application/add_values.py && uvicorn application.main:main_app --host 0.0.0.0 --port 8000"]
+CMD ["sh", "-c", "alembic -c src/alembic.ini upgrade head && python src/add_values.py && uvicorn src.main:main_app --host 0.0.0.0 --port 8000"]

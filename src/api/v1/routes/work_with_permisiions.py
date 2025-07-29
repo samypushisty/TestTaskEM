@@ -12,7 +12,7 @@ async def get_manage_service() -> ManageServiceI:
     return container.manage_service()
 
 @router.post("/permission")
-async def get_user(
+async def post_permission(
         user_id: int,
         permission: str,
         token: JwtInfo = Depends(validation),
@@ -21,7 +21,7 @@ async def get_user(
     return await manage_service.add_permission(token=token, user_id=user_id, permission=permission)
 
 @router.delete("/permission")
-async def get_user(
+async def delete_permission(
         user_id: int,
         permission: str,
         token: JwtInfo = Depends(validation),

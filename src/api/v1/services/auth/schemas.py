@@ -28,8 +28,8 @@ class GetUser(BaseModel):
     posts: List[GetPost]
 
 class UserPatch(BaseModel):
-    name: Optional[str] = Field(max_length=15)
-    last_name: Optional[str] = Field(max_length=15)
+    name: Optional[str] = Field(None, max_length=15)
+    last_name: Optional[str] = Field(None, max_length=15)
     description: Optional[str] = Field(None, max_length=256)
 
 class JWTRead(BaseModel):

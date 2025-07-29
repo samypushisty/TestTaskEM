@@ -1,7 +1,6 @@
-from datetime import datetime
 from typing import Optional, List
 
-from pydantic import BaseModel, Field, EmailStr
+from pydantic import BaseModel, Field
 
 class UserPost(BaseModel):
     title: str = Field(max_length=15)

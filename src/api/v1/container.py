@@ -4,6 +4,7 @@ from dependency_injector.providers import Singleton, Factory, Resource
 from api.v1.services.posts import PostService, PostServiceI
 from api.v1.services.auth import AuthService, AuthServiceI
 from api.v1.services.permissions import ManageService, ManageServiceI
+from api.v1.services.settings import UserSettingsService, UserSettingsServiceI
 
 from api.v1.utils.repository import SQLAlchemyRepository
 from core.config import settings
@@ -48,6 +49,10 @@ class DependencyContainer(containers.DeclarativeContainer):
                                                     repository_user=user_repository,
                                                     repository_settings= user_settings_repository,
                                                     repository_permissions=user_permissions_repository,
+                                                    database_session=database_session)
+
+    user_settings_service: Factory["UserSettingsServiceI"] = Factory(UserSettingsService,
+                                                    repository=user_settings_repository,
                                                     database_session=database_session)
 
     manage_service: Factory["ManageServiceI"] = Factory(ManageService,
