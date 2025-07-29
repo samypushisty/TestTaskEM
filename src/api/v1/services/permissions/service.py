@@ -18,8 +18,6 @@ class ManageService(ManageServiceI):
         async with self.session() as session:
             async with session.begin():
                 work_user: User = await self.repository_user.find(session=session, user_id=token.id, validate=True)
-                if not work_user.active:
-                    raise StandartException(status_code=403, detail="Not Found")
                 if not work_user.has_permission("admin"):
                     raise StandartException(status_code=403, detail="Forbidden")
 
