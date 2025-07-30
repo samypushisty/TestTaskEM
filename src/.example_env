@@ -1,6 +1,6 @@
 APP_CONFIG__DB__URL=postgresql+asyncpg://postgres:admin@postgres:5432/postgres
 APP_CONFIG__SECRET_KEY=your_key
-APP_CONFIG__DB_REDIS__REDIS_PASSWORD=parol
+APP_CONFIG__DB_REDIS__REDIS_PASSWORD=your_password
 APP_CONFIG__DB_REDIS__REDIS_HOST=redis
 POSTGRES_USER=postgres
 POSTGRES_PASSWORD=admin
