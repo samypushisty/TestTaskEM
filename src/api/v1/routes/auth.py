@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends
 from api.v1.container import container
 from api.v1.services.auth import AuthServiceI
-from api.v1.services.auth.schemas import JWTRead, GetUser, UserPatch, UserSign, UserReg
+from api.v1.services.auth.schemas import JWTRead, GetUser, UserPatch, UserSign, UserReg, UserChangePassword
 from api.v1.base_schemas.schemas import GenericResponse
 from secure import JwtInfo
 from secure.jwt_functions import validation
@@ -60,3 +60,11 @@ async def refresh_token(
         auth_service = Depends(get_auth_service),
         ):
     return await auth_service.update_token(token=token)
+
+@router.post("/change_password")
+async def change_password(
+        user_change_password: UserChangePassword,
+        token: JwtInfo = Depends(validation),
+        auth_service = Depends(get_auth_service),
+        ):
+    return await auth_service.edit_password(token=token, user_change_password=user_change_password)

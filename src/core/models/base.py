@@ -5,6 +5,16 @@ from sqlalchemy.orm import Mapped, mapped_column, DeclarativeBase, relationship
 from core.config import settings
 import enum
 
+import sys
+import logging
+from logging import StreamHandler, Formatter
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
+handler = StreamHandler(stream=sys.stdout)
+handler.setFormatter(Formatter(fmt='[%(asctime)s: %(levelname)s] %(message)s'))
+logger.addHandler(handler)
+
 str_15 = Annotated[str,15]
 str_256 = Annotated[str,256]
 intfk = Annotated[int, mapped_column(BigInteger, ForeignKey("user.user_id", ondelete="CASCADE"))]
@@ -84,14 +94,9 @@ class User(Base):
     )
 
     def has_permission(self, permission_name: str) -> bool:
+        logger.debug("check Permission")
+        logger.debug("Success")
         return any(p.name == permission_name for p in self.permissions)
-
-    def add_permission(self, permission: Permission):
-        if permission not in self.permissions:
-            self.permissions.append(permission)
-
-    def remove_permission(self, permission_name: str):
-        self.permissions = [p for p in self.permissions if p.name != permission_name]
 
 
 class UserSettings(Base):

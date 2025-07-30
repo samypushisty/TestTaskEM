@@ -7,6 +7,15 @@ from api.v1.base_schemas.schemas import StandartException
 from core.config import settings
 from core.redis_db.redis_helper import redis_client
 
+import sys
+import logging
+from logging import StreamHandler, Formatter
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
+handler = StreamHandler(stream=sys.stdout)
+handler.setFormatter(Formatter(fmt='[%(asctime)s: %(levelname)s] %(message)s'))
+logger.addHandler(handler)
 
 def validation(token: str):
     jwt_info = JwtInfo(token)
@@ -55,4 +64,6 @@ class JwtInfo:
             self.info_except = None
 
     def logout(self):
+        logger.debug("Logout user")
         redis_client.delete(self.id)
+        logger.debug("Success")

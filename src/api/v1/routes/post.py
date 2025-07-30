@@ -30,16 +30,18 @@ async def get_post(
 
 @router.get("/all", response_model=GenericResponse[GetPosts])
 async def get_posts(
+        page: int,
         manage_service = Depends(get_post_service),
         ):
-    return await manage_service.get_posts()
+    return await manage_service.get_posts(page=page)
 
 @router.get("/userall", response_model=GenericResponse[GetPosts])
 async def get_user_posts(
+        page: int,
         user_id: int,
         manage_service = Depends(get_post_service),
         ):
-    return await manage_service.get_user_posts(user_id=user_id)
+    return await manage_service.get_user_posts(user_id=user_id, page=page)
 
 @router.delete("")
 async def delete_post(

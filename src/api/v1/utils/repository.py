@@ -63,17 +63,19 @@ class SQLAlchemyRepository(AbstractRepository):
     async def add(self, session: AsyncSession, data: dict):
 
         try:
+            logger.debug(f"Adding {self.model.__name__} to DB: {data}")
             stmt = self.model(**data)
             session.add(stmt)
             await session.flush()
             logger.debug("Success")
             return stmt
-        except:
-            logger.error("Invalid data")
+        except Exception as e:
+            logger.error(str(e))
             raise StandartException(status_code=400, detail="Invalid data")
 
 
     async def find(self, session: AsyncSession, validate: bool = False,**filters):
+        logger.debug(f"Finding {self.model.__name__} in DB where: {str(filters)}")
         query = (
             select(self.model)
             .filter_by(**filters)
@@ -81,13 +83,14 @@ class SQLAlchemyRepository(AbstractRepository):
         result = await session.execute(query)
         result = result.scalars().first()
         if not result and validate:
-            logger.error("Not found")
+            logger.exception("Not found")
             raise StandartException(status_code=404, detail="not found")
         logger.debug("Success")
         return result
 
 
     async def find_all(self, session: AsyncSession, order_column: str, validate: bool = False, **filters):
+        logger.debug(f"Finding All{self.model.__name__} in DB where:{str(filters)}")
         query = (
             select(self.model)
             .filter_by(**filters)
@@ -96,13 +99,17 @@ class SQLAlchemyRepository(AbstractRepository):
         result = await session.execute(query)
         result = result.scalars().all()
         if not result and validate:
-            logger.error("Not found")
+            logger.exception("Not found")
             raise StandartException(status_code=404, detail="not found")
         logger.debug("Success")
         return result
 
 
     async def find_paginated(self, session: AsyncSession, page: int, order_column: str, validate: bool = False, per_page: int = 20, **filters):
+        logger.debug(f"Finding {self.model.__name__} in DB where: {str(filters)}")
+        if page < 1:
+            logger.exception("page < 1")
+            raise StandartException(status_code=404, detail="not found")
         offset = (page - 1) * per_page
         query = (
             select(self.model)
@@ -114,13 +121,14 @@ class SQLAlchemyRepository(AbstractRepository):
         result = await session.execute(query)
         result = result.scalars().all()
         if not result and validate:
-            logger.error("Not found")
+            logger.exception("Not found")
             raise StandartException(status_code=404, detail="not found")
         logger.debug("Success")
         return result
 
 
     async def patch(self, session: AsyncSession, data: dict, **filters):
+        logger.debug(f"Patching {self.model.__name__} in DB where \n data: {data} \n filters: {str(filters)}")
         stmt = (
             update(self.model)
             .values(**data)
@@ -128,16 +136,17 @@ class SQLAlchemyRepository(AbstractRepository):
         )
         try:
             result = await session.execute(stmt)
-        except:
-            logger.error("Invalid data")
+        except Exception as e:
+            logger.error(str(e))
             raise StandartException(status_code=400, detail="Invalid data")
         if result.rowcount == 0:
-            logger.error("Not found")
+            logger.exception("Not found")
             raise StandartException(status_code=404, detail="not found")
         logger.debug("Success")
         await session.flush()
 
     async def patch_field(self, session: AsyncSession, field: str, value: Any, **filters):
+        logger.debug(f"Patching field {self.model.__name__} in DB where \n value: {str(value)} \n field: {field} \n filters: {str(filters)}")
         stmt = (
             update(self.model)
             .values({field : value})
@@ -146,22 +155,23 @@ class SQLAlchemyRepository(AbstractRepository):
         try:
             result = await session.execute(stmt)
             if result.rowcount == 0:
-                logger.error("Not found")
+                logger.exception("Not found")
                 raise StandartException(status_code=404, detail="Not Found")
-        except:
-            logger.error("Invalid data")
+        except Exception as e:
+            logger.error(str(e))
             raise StandartException(status_code=400, detail="Invalid data")
         logger.debug("Success")
         await session.flush()
 
     async def delete(self, session: AsyncSession,validate = True,**filters):
+        logger.debug(f"Deleting {self.model.__name__} in DB where: {str(filters)}")
         query = (
             delete(self.model)
             .filter_by(**filters)
         )
         result = await session.execute(query)
         if result.rowcount == 0 and validate:
-            logger.error("Not found")
+            logger.exception("Not found")
             raise StandartException(status_code=404, detail="not found")
         logger.debug("Success")
         await session.flush()

@@ -52,7 +52,7 @@ class Settings(BaseSettings):
         env_prefix="APP_CONFIG__",
         extra="ignore"
     )
-    default_permissions: list = ["create","edit","delete"]
+    default_permissions: list = ["create","edit","delete","admin"]
     secret_key: str = ""
     run: RunConfig = RunConfig()
     api: ApiPrefix = ApiPrefix()

@@ -15,11 +15,11 @@ class PostServiceI(Protocol):
         ...
 
     @abstractmethod
-    async def get_posts(self) -> GenericResponse[GetPosts]:
+    async def get_posts(self, page:int) -> GenericResponse[GetPosts]:
         ...
 
     @abstractmethod
-    async def get_user_posts(self, user_id: int) -> GenericResponse[GetPosts]:
+    async def get_user_posts(self, page: int, user_id: int) -> GenericResponse[GetPosts]:
         ...
 
     @abstractmethod

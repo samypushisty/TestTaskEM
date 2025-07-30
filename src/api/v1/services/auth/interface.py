@@ -2,7 +2,7 @@ from abc import abstractmethod
 from typing import Protocol
 
 from secure import JwtInfo
-from .schemas import JWTRead, GetUser, UserPatch, UserReg, UserSign
+from .schemas import JWTRead, GetUser, UserPatch, UserReg, UserSign, UserChangePassword
 from api.v1.base_schemas.schemas import GenericResponse
 
 class AuthServiceI(Protocol):
@@ -32,4 +32,8 @@ class AuthServiceI(Protocol):
 
     @abstractmethod
     async def update_token(self, token: JwtInfo) -> GenericResponse[JWTRead]:
+        ...
+
+    @abstractmethod
+    async def edit_password(self, token: JwtInfo, user_change_password: UserChangePassword) -> None:
         ...

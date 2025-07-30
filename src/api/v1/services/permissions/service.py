@@ -7,6 +7,15 @@ from secure import JwtInfo
 from typing import Callable
 from sqlalchemy.ext.asyncio import AsyncSession
 
+import sys
+import logging
+from logging import StreamHandler, Formatter
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
+handler = StreamHandler(stream=sys.stdout)
+handler.setFormatter(Formatter(fmt='[%(asctime)s: %(levelname)s] %(message)s'))
+logger.addHandler(handler)
 
 class ManageService(ManageServiceI):
     def __init__(self, repository_user: SQLAlchemyRepository,repository_permissions: SQLAlchemyRepository, database_session:Callable[..., AsyncSession]) -> None:
@@ -17,33 +26,44 @@ class ManageService(ManageServiceI):
     async def add_permission(self, token: JwtInfo, user_id: int, permission: str) -> None:
         async with self.session() as session:
             async with session.begin():
+                logger.debug(f"User {token.id} starts to add permission {permission} to user {user_id}")
                 work_user: User = await self.repository_user.find(session=session, user_id=token.id, validate=True)
                 if not work_user.has_permission("admin"):
+                    logger.exception(f"User {token.id} haven't permission admin")
                     raise StandartException(status_code=403, detail="Forbidden")
 
                 permission: Permission = await self.repository_permissions.find(session=session, name=permission, validate=True)
                 user: User = await self.repository_user.find(session=session, user_id=user_id, validate=True)
                 if permission not in user.permissions:
+                    logger.debug(f"User {token.id} added permission {permission.name} to user {user_id}")
                     user.permissions.append(permission)
+                logger.debug(f"User {token.id} finished to add permission {permission.name} to user {user_id}")
+
 
     async def delete_permission(self, token: JwtInfo, user_id: int, permission: str) -> None:
         async with self.session() as session:
             async with session.begin():
+                logger.debug(f"User {token.id} starts to delete permission {permission} to user {user_id}")
                 work_user: User = await self.repository_user.find(session=session, user_id=token.id, validate=True)
                 if not work_user.has_permission("admin"):
+                    logger.exception(f"User {token.id} haven't permission admin")
                     raise StandartException(status_code=403, detail="Forbidden")
 
                 permission: Permission = await self.repository_permissions.find(session=session, name=permission,
                                                                                 validate=True)
                 user: User = await self.repository_user.find(session=session, user_id=user_id, validate=True)
                 if permission in user.permissions:
+                    logger.debug(f"User {token.id} deleted permission {permission.name} to user {user_id}")
                     user.permissions.remove(permission)
+                logger.debug(f"User {token.id} finished to delete permission {permission.name} to user {user_id}")
 
     async def get_user(self, token: JwtInfo, user_id: int) -> GenericResponse[GetUser]:
         async with self.session() as session:
             async with session.begin():
+                logger.debug(f"User {token.id} starts get user {user_id}")
                 work_user: User = await self.repository_user.find(session=session, user_id=token.id, validate=True)
                 if not work_user.has_permission("moderator"):
+                    logger.exception(f"User {token.id} haven't permission moderator")
                     raise StandartException(status_code=403,detail="Forbidden")
                 user: User = await self.repository_user.find(session=session, user_id=user_id, validate=True)
                 result = GetUser(
@@ -63,31 +83,37 @@ class ManageService(ManageServiceI):
                         for permission in user.permissions
                     ],
                 )
+                logger.debug(f"User {token.id} finished get user {user_id}")
                 return GenericResponse[GetUser](detail=result)
 
     async def delete_user(self, token: JwtInfo, user_id: int) -> None:
         async with self.session() as session:
             async with session.begin():
+                logger.debug(f"User {token.id} starts delete user {user_id}")
                 work_user: User = await self.repository_user.find(session=session, user_id=token.id, validate=True)
                 if not work_user.has_permission("moderator"):
+                    logger.exception(f"User {token.id} haven't permission moderator")
                     raise StandartException(status_code=403, detail="Forbidden")
-                permission: Permission = await self.repository_permissions.find(session=session, name="admin",
-                                                                                validate=True)
+
                 user : User = await self.repository_user.find(session=session, user_id=user_id, validate=True)
-                if permission in user.permissions:
+                if user.has_permission("admin"):
+                    logger.exception(f"User {token.id} can't delete admin")
                     raise StandartException(status_code=403, detail="Forbidden")
                 await self.repository_user.patch_field(session=session, user_id=user_id, field="active", value=False)
+                logger.debug(f"User {token.id} finished get user {user_id}")
 
     async def activate_user(self, token: JwtInfo, user_id: int) -> None:
         async with self.session() as session:
             async with session.begin():
+                logger.debug(f"User {token.id} starts activate user {user_id}")
                 work_user: User = await self.repository_user.find(session=session, user_id=token.id, validate=True)
                 if not work_user.has_permission("moderator"):
+                    logger.exception(f"User {token.id} haven't permission moderator")
                     raise StandartException(status_code=403, detail="Forbidden")
-                permission: Permission = await self.repository_permissions.find(session=session, name="admin",
-                                                                                validate=True)
                 user: User = await self.repository_user.find(session=session, user_id=user_id, validate=True)
-                if permission in user.permissions:
+                if user.has_permission("admin"):
+                    logger.exception(f"User {token.id} can't activate admin")
                     raise StandartException(status_code=403,detail="Forbidden")
                 await self.repository_user.patch_field(session=session, user_id=user_id, field="active",
                                                            value=True)
+                logger.debug(f"User {token.id} finished activate user {user_id}")
